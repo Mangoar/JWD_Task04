@@ -26,45 +26,100 @@ public class Server {
         new Server().runServer();
     }
 
-    public void runServer() throws IOException, ClassNotFoundException {
-        ServerSocket serverSocket = new ServerSocket(PORT);
-        System.out.println("Server up and ready for connections...");
-        Socket socket = serverSocket.accept();
-        ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
-        Message message = (Message) objectInputStream.readObject();
-        fileParser = new Parser();
-//        System.out.println(message.getCode());
-//        for (String str : message.getMessageBody()){
-//            System.out.println(str);
-//        }
+    public void runServer() {
+        try {
+            ServerSocket serverSocket = new ServerSocket(PORT);
+            System.out.println("Server up and ready for connections...");
+            Socket socket = serverSocket.accept();
+            ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
+            Message message = (Message) objectInputStream.readObject();
+            fileParser = new Parser();
 
-        while (message.getCode() != 0 | message.getMessageBody()!=null) {
-            int messageCode = message.getCode();
-            List<String> messageBody = message.getMessageBody();
-            List<String> resultList = new ArrayList<>();
-            switch (messageCode) {
-                case 0:{
-                    fileParser.setFileRows(messageBody);
-                    fileParser.clearCode();
-                    fileParser.getAllSentances();
-                    fileParser.getAllWords();
-                    break;
+            while (!socket.isClosed()) {
+                int messageCode = message.getCode();
+                List<String> messageBody = message.getMessageBody();
+                System.out.println(message);
+                List<String> resultList = new ArrayList<>();
+                switch (messageCode) {
+                    case 0: {
+                        fileParser.setFileRows(messageBody);
+                        fileParser.getAllLists();
+//                        fileParser.clearCode();
+//                        fileParser.getAllSentances();
+//                        fileParser.getAllWords();
+//                        fileParser.getAllQuestionSentances();
+                        resultList.add("File is uploaded. Now you can work with other functions");
+                        break;
+                    }
+                    case 1: {
+                        resultList = fileParser.function1();
+                        break;
+                    }
+                    case 2: {
+                        resultList = fileParser.function2();
+                        break;
+                    }
+                    case 3: {
+                        resultList = fileParser.function3();
+                        break;
+                    }
+                    case 4: {
+                        resultList = fileParser.function4(message.getMessageBody().get(0));
+                        break;
+                    }
+                    case 5: {
+                        resultList = fileParser.function5();
+                        break;
+                    }
+                    case 6: {
+                        resultList = fileParser.function6();
+                        break;
+                    }
+                    case 7: {
+                        resultList = fileParser.function7();
+                        break;
+                    }
+                    case 8: {
+                        resultList = fileParser.function8();
+                        break;
+                    }
+                    case 9: {
+                        resultList = fileParser.function9(message.getMessageBody().get(0));
+                        break;
+                    }
+                    case 11: {
+                        resultList = fileParser.function11(message.getMessageBody().get(0));
+                        break;
+                    }
+                    case 12: {
+                        resultList = fileParser.function12(message.getMessageBody().get(0));
+                        break;
+                    }
+                    case 13: {
+                        resultList = fileParser.function13(message.getMessageBody().get(0));
+                        break;
+                    }
+                    case 15: {
+                        resultList = fileParser.function15();
+                        break;
+                    }
+                    case 16: {
+                        resultList = fileParser.function16(message.getMessageBody().get(0),message.getMessageBody().get(1));
+                        break;
+                    }
+                    default:{
+                        objectInputStream.close();
+                        objectInputStream.close();
+                        socket.close();
+                        break;
+                    }
                 }
-                case 2:{
-                    resultList = fileParser.function2();
-                    break;
-                }
-                case 3:{
-                    resultList = fileParser.function3();
-                    break;
-                }
+                message.setMessageBody(resultList);
+                objectOutputStream.writeObject(message);
+                objectOutputStream.flush();
+                message = (Message) objectInputStream.readObject();
             }
-            message.setMessageBody(resultList);
-            objectOutputStream.writeObject(message);
-            message = (Message) objectInputStream.readObject();
-        }
-
 
 
 //        message = (Message) objectInputStream.readObject();
@@ -77,11 +132,13 @@ public class Server {
 //        doSomething(message);
 //        objectOutputStream.writeObject(message);
 
-        socket.close();
-    }
-
-    private void doSomething(Message message) {
-        message.addStringToList("You go fuck your self, right now! Ok?");
+            socket.close();
+        }
+        catch (IOException ioException){
+            logger.info("IO Exception occurred!");
+        } catch (ClassNotFoundException classNotFoundException) {
+            logger.info("ClassNotFound Exception occurred!");
+        }
     }
 
 }

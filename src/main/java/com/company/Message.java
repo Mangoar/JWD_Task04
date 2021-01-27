@@ -1,6 +1,7 @@
 package com.company;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -12,10 +13,12 @@ public class Message implements Serializable {
     private List<String> messageBody;
 
     public Message() {
+        messageBody = new ArrayList<>();
     }
 
     public Message(int code) {
         this.code = code;
+        messageBody = new ArrayList<>();
     }
 
     public Message(List<String> messageBody) {
@@ -64,8 +67,10 @@ public class Message implements Serializable {
     public String toString() {
         StringBuilder messageString = new StringBuilder();
         messageString.append("Message{" + "code=" + code + "\n" + "messageBody:" + "\n");
-        for (String row : messageBody){
-            messageString.append(row+ "\n");
+        if (messageBody != null) {
+            for (String row : messageBody) {
+                messageString.append(row + "\n");
+            }
         }
         messageString.append("}");
         return messageString.toString();
