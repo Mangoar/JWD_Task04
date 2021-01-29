@@ -5,12 +5,9 @@ import com.company.server.parsers.QuestionParser;
 import com.company.server.parsers.SentancesParser;
 import com.company.server.parsers.WordsParser;
 
-import java.text.DecimalFormat;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static java.util.Map.Entry.comparingByKey;
 
 public class Parser {
     private List<String> fileRows;
@@ -53,80 +50,17 @@ public class Parser {
         questionSentances = questionParser.getRows();
     }
 
-    //    public void clearCode() {
-//
-//        for (String row : fileRows) {
-////            char firstSymbol = row.trim().charAt(0);
-////            if (Character.isDigit(firstSymbol) || Character.UnicodeBlock.of(firstSymbol).equals(Character.UnicodeBlock.CYRILLIC)) {
-//            String firstSymbol = row.trim().substring(0, 1);
-//            Pattern patkirletter = Pattern.compile("[а-яА-Я]{1}");
-//            Matcher matkirletter = patkirletter.matcher(firstSymbol);
-//            Pattern patnumber = Pattern.compile("[0-9]{1}");
-//            Matcher matnumber = patnumber.matcher(firstSymbol);
-//            if (matkirletter.matches() || matnumber.matches()) {
-//                clearedFileRows.add(row);
-//            }
-//        }
-//    }
-//
-//    public void getAllSentances() {
-//
-//        StringBuilder fileRow = new StringBuilder();
-//
-//        for (String row : clearedFileRows) {
-//            fileRow.append(row.trim());/*.replaceAll("[!?]","."));*/
-//            System.out.println(row);
-//        }
-//
-//        String[] sentances = fileRow.toString().split("[\\.\\!\\?]");
-////        System.out.println("All sentences are :");
-//        for (String sentance : sentances) {
-//            textSentances.add(sentance);
-//        }
-//    }
-//
-//    public void getAllQuestionSentances() {
-//
-//        StringBuilder fileRow = new StringBuilder();
-//
-//        for (String row : clearedFileRows) {
-//            fileRow.append(row.trim());
-//        }
-//
-//        String[] sentances = fileRow.toString().split("[^.!?]*[?]");
-//        for (String sentance : sentances) {
-//            questionSentances.add(sentance);
-//        }
-//    }
-//
-//    public void getAllWords() {
-//        Pattern rusWordPattern = Pattern.compile("([А-я]+)");
-//        Pattern rusDoubledWordPattern = Pattern.compile("[А-я]+-[А-я]+");
-//        Matcher rusWordMatcher;
-//        Matcher rusDoubledWordMatcher;
-//        for (String sentance : textSentances) {
-//            String[] words = sentance.split("[\\,\\:\\;\\s]");
-//            for (String word : words) {
-//                rusWordMatcher = rusWordPattern.matcher(word);
-//                rusDoubledWordMatcher = rusDoubledWordPattern.matcher(word);
-//                if (rusWordMatcher.matches() || rusDoubledWordMatcher.matches()) {
-//                    textWords.add(word);
-//                }
-//            }
-//        }
-//
-//    }
-//
     public List<String> getAllSentanceWords(String sentance) {
         List<String> wordsList = new ArrayList<>();
         String[] words = sentance.split("[\\,\\:\\;\\s]");
         for (String word : words) {
-            wordsList.add(word);
+            if (!word.trim().isBlank()) {
+                wordsList.add(word);
+            }
         }
         return wordsList;
     }
 
-    //1 2 3 4 5 6 7 8 9 11 12 13 15 16 (10 14)
     public List<String> function1() {
         List<String> resultList = new ArrayList<>();
 
@@ -170,9 +104,11 @@ public class Parser {
                 sentancesList.add(sentance);
             }
         }
-        for (Map.Entry<Integer, List<String>> entry : sentancesMap.entrySet()) {
-            resultList.add("Sentences with " + entry.getKey() + " words:");
-            for (String entryRow : entry.getValue()) {
+        SortedSet<Integer> keys = new TreeSet<>(sentancesMap.keySet());
+        for (int key : keys) {
+            List<String> entryList = sentancesMap.get(key);
+            resultList.add("Sentences with " + key + " words:");
+            for (String entryRow : entryList) {
                 resultList.add(entryRow);
             }
         }
@@ -184,13 +120,11 @@ public class Parser {
         List<String> resultList = new ArrayList<>();
         List<String> firstSentanceWords = new ArrayList<>();
         String firstSentance = textSentances.get(0);
-//        System.out.println(firstSentance);
         String[] words = firstSentance.split("[\\,\\:\\;\\s]");
         for (String word : words) {
-            if (word.trim().length() != 0) {
+            if (!word.trim().isBlank()) {
                 firstSentanceWords.add(word);
             }
-//            System.out.println(word);
         }
 
         List<String> textSentancesForSearch = new ArrayList<>(textSentances);
@@ -214,6 +148,10 @@ public class Parser {
         List<String> resultList = new ArrayList<>();
         int intWordLength = Integer.parseInt(wordLength);
         Set<String> wordsSet = new HashSet<String>();
+        Pattern rusWordPattern = Pattern.compile("([А-я]+)");
+        Pattern rusDoubledWordPattern = Pattern.compile("[А-я]+-[А-я]+");
+        Matcher rusWordMatcher;
+        Matcher rusDoubledWordMatcher;
 
         resultList.add("Words from question sentances of given length:");
         for (String sentance : questionSentances) {
@@ -223,8 +161,15 @@ public class Parser {
             }
         }
         for (String word : wordsSet) {
+            word.trim();
+            word.replaceAll("[\\.\\(\\)\"]", "");
+
             if (word.length() == intWordLength) {
-                resultList.add(word);
+                rusWordMatcher = rusWordPattern.matcher(word);
+                rusDoubledWordMatcher = rusDoubledWordPattern.matcher(word);
+                if (rusWordMatcher.matches() || rusDoubledWordMatcher.matches()) {
+                    resultList.add(word);
+                }
             }
         }
         return resultList;
@@ -235,15 +180,12 @@ public class Parser {
         resultList.add("Editted sentances:");
         for (String sentance : textSentances) {
             List<String> sentanceWords = getAllSentanceWords(sentance);
+            System.out.println(sentanceWords);
             String firstWord = sentanceWords.get(0);
             String lastWord = sentanceWords.get(sentanceWords.size() - 1);
             String newSentance = sentance.replaceFirst(lastWord, firstWord);
-            newSentance.replaceFirst(firstWord, lastWord);
-
-            resultList.add(newSentance);
+            resultList.add(newSentance.replaceFirst(firstWord, lastWord));
         }
-
-
         return resultList;
     }
 
@@ -396,11 +338,45 @@ public class Parser {
         return resultList;
     }
 
+    public List<String> function10(List<String> words) {
+        List<String> resultList = new ArrayList<>();
+
+        Map<Integer, List<String>> wordsMap = new HashMap<>();
+
+        for (String word : words) {
+            int counter = 0;
+            for (String sentance : textSentances) {
+                if (sentance.toLowerCase(Locale.ROOT).contains(word.toLowerCase(Locale.ROOT))) {
+                    counter++;
+                }
+            }
+            if (!wordsMap.containsKey(counter)) {
+                List<String> wordsList = new ArrayList<>();
+                wordsList.add(word);
+                wordsMap.put(counter, wordsList);
+            } else {
+                List<String> wordsList = wordsMap.get(counter);
+                wordsList.add(word);
+            }
+        }
+        Map<Integer, List<String>> wordsTreeMap = new TreeMap<>(Collections.reverseOrder());
+        wordsTreeMap.putAll(wordsMap);
+
+        for (Map.Entry<Integer, List<String>> entry : wordsTreeMap.entrySet()) {
+            resultList.add("Words with " + entry.getKey() + " entries in sentances:");
+            for (String entryRow : entry.getValue()) {
+                resultList.add(entryRow);
+            }
+        }
+
+        return resultList;
+    }
+
     public List<String> function11(String symbol) {
         List<String> resultList = new ArrayList<>();
 
         Matcher matcher;
-        String regex = symbol + "(.*?)" + symbol;
+        String regex = symbol + ".+" + symbol;
 
         resultList.add("Sentances with deleted substring:");
         for (String sentance : textSentances) {
@@ -409,9 +385,7 @@ public class Parser {
 
             matcher = Pattern.compile(regex).matcher(sentance);
             List<String> entries = new ArrayList<>();
-            int pos = -1;
-            while (matcher.find(pos + 1)) {
-                pos = matcher.start();
+            while (matcher.find()) {
                 entries.add(matcher.group(1));
                 int length = matcher.group(1).length();
                 if (length > maxLength) {
@@ -432,16 +406,22 @@ public class Parser {
     public List<String> function12(String wordLength) {
         List<String> resultList = new ArrayList<>();
         int deleteLength = Integer.parseInt(wordLength);
-        resultList.add("Words in that remain:");
+        resultList.add("Words that remain:");
         for (String word : textWords) {
+            boolean remain = false;
             char firstChar = word.toLowerCase(Locale.ROOT).charAt(0);
             char[] vowels = new char[]{'а', 'е', 'и', 'о', 'у', 'ы', 'ё', 'ю', 'э', 'я'};
             for (char vowel : vowels) {
-                if (firstChar != vowel) {
+                if (firstChar == vowel) {
+                    remain = true;
+                } else {
                     if (word.length() != deleteLength) {
-                        resultList.add(word);
+                        remain = true;
                     }
                 }
+            }
+            if (remain) {
+                resultList.add(word);
             }
         }
         return resultList;
@@ -466,7 +446,6 @@ public class Parser {
             if (counter > maxCounter) {
                 maxCounter = counter;
             }
-//            wordsMap.put(word, counter);
             if (!wordsMap.containsKey(counter)) {
                 List<String> wordsList = new ArrayList<>();
                 wordsList.add(word);
@@ -476,20 +455,10 @@ public class Parser {
                 wordsList.add(word);
             }
         }
-        Map<Integer, List<String>> wordsTreeMap = new TreeMap<>(wordsMap);
+        Map<Integer, List<String>> wordsTreeMap = new TreeMap<>(Collections.reverseOrder());
+        wordsTreeMap.putAll(wordsMap);
 
-//        for (int i = maxCounter; i > -1; i--) {
-//            resultList.add("Words with " + i + " entries of " + symbol + ":");
-//            for (Map.Entry<String, Integer> entry : wordsTreeMap.entrySet()) {
-//                if (entry.getValue() == i) {
-//                    resultList.add(entry.getKey());
-//                }
-//
-//            }
-//        }
         for (Map.Entry<Integer, List<String>> entry : wordsTreeMap.entrySet()) {
-            List<String> wordsList = entry.getValue();
-            wordsList.sort(Comparator.reverseOrder());
             resultList.add("Words with " + entry.getKey() + " entries of " + symbol + ":");
             for (String entryRow : entry.getValue()) {
                 resultList.add(entryRow);
@@ -498,20 +467,72 @@ public class Parser {
 
         return resultList;
     }
-    //!
-    public List<String> function15() {
+
+    public List<String> function14() {
+        List<String> resultList = new ArrayList<>();
+        StringBuilder fileRow = new StringBuilder();
+        StringBuilder result = new StringBuilder();
+        for (String row : clearedFileRows) {
+            fileRow.append(row);
+        }
+
+//        for (int i = 0; i < fileRow.length(); i++) {
+//            if ((i + 1) < fileRow.length()) {
+//                if (fileRow.charAt(i) == fileRow.charAt(i + 1)) {
+//                    result.append(fileRow.charAt(i));
+//                } else if ((i - 1) >= 0 && fileRow.charAt(i) == fileRow.charAt(i - 1)) {
+//                    result.append(fileRow.charAt(i));
+//                }
+//            } else {
+//                if (fileRow.charAt(i) == fileRow.charAt(i - 1)) {
+//                    result.append(fileRow.charAt(i));
+//                }
+//            }
+//        }
+//        List<String> results = Arrays.asList(result.toString().split("[\\s]"));
+//        int largestString = results.get(0).length();
+//        int index = 0;
+//
+//        for(int i = 0; i < results.size(); i++)
+//        {
+//            if(results.get(i).length() > largestString)
+//            {
+//                largestString = results.get(i).length();
+//                index = i;
+//            }
+//        }
+//        resultList.add(results.get(index));
+        return resultList;
+    }
+
+    public List<String> function15(String type) {
         List<String> resultList = new ArrayList<>();
         Map<String, String> wordsMap = new HashMap<>();
-        for (String word : textWords) {
-            String firstSymbol = word.substring(0, 1);
-            String newWord = word.replace(firstSymbol, "");
-            if (!newWord.isEmpty()) {
+        if (type.equalsIgnoreCase("first")) {
+            for (String word : textWords) {
+                String firstSymbol = word.substring(0, 1);
+                String newWord = firstSymbol.concat(word.replace(firstSymbol, ""));
                 wordsMap.put(word, newWord);
             }
-        }
-        resultList.add("Words with and their editted variant:");
-        for (Map.Entry<String, String> entry : wordsMap.entrySet()) {
-            resultList.add(entry.getKey() + " -> " + entry.getValue());
+            resultList.add("Words with and their editted variant:");
+            for (Map.Entry<String, String> entry : wordsMap.entrySet()) {
+                resultList.add(entry.getKey() + " -> " + entry.getValue());
+            }
+        } else if (type.equalsIgnoreCase("last")) {
+            for (String word : textWords) {
+                String newWord;
+                if (word.length() > 2) {
+                    String lastSymbol = word.substring(word.length() - 1);
+                    newWord = word.replace(lastSymbol, "").concat(lastSymbol);
+                } else {
+                    newWord = word;
+                }
+                wordsMap.put(word, newWord);
+            }
+            resultList.add("Words with and their editted variant:");
+            for (Map.Entry<String, String> entry : wordsMap.entrySet()) {
+                resultList.add(entry.getKey() + " -> " + entry.getValue());
+            }
         }
         return resultList;
     }
@@ -522,20 +543,24 @@ public class Parser {
 
         int sentenceNumber = new Random().nextInt(textSentances.size());
         String sentenceForEdit = textSentances.get(sentenceNumber);
-
         resultList.add("Sentence to edit:");
         resultList.add(sentenceForEdit);
 
-        List<String> sentenceWords = getAllSentanceWords(sentenceForEdit);
-        for (String word : sentenceWords) {
-            if (word.length() == intWordLength) {
-                sentenceForEdit.replace(word, substring);
+
+        String[] allWords = sentenceForEdit.split("[,:;\\s]");
+        String resultString = "";
+        for (String str : allWords) {
+            if (str.length() == intWordLength) {
+                str = substring;
             }
+            resultString = resultString.concat(str).concat(" ");
         }
         resultList.add("Sentence after edit:");
-        resultList.add(sentenceForEdit);
+        resultList.add(resultString);
 
 
         return resultList;
     }
+
+
 }

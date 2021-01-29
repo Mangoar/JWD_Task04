@@ -8,12 +8,8 @@ import java.io.ObjectOutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class Server {
 
@@ -39,16 +35,11 @@ public class Server {
             while (!socket.isClosed()) {
                 int messageCode = message.getCode();
                 List<String> messageBody = message.getMessageBody();
-                System.out.println(message);
                 List<String> resultList = new ArrayList<>();
                 switch (messageCode) {
                     case 0: {
                         fileParser.setFileRows(messageBody);
                         fileParser.getAllLists();
-//                        fileParser.clearCode();
-//                        fileParser.getAllSentances();
-//                        fileParser.getAllWords();
-//                        fileParser.getAllQuestionSentances();
                         resultList.add("File is uploaded. Now you can work with other functions");
                         break;
                     }
@@ -88,6 +79,10 @@ public class Server {
                         resultList = fileParser.function9(message.getMessageBody().get(0));
                         break;
                     }
+                    case 10: {
+                        resultList = fileParser.function10(message.getMessageBody());
+                        break;
+                    }
                     case 11: {
                         resultList = fileParser.function11(message.getMessageBody().get(0));
                         break;
@@ -100,8 +95,12 @@ public class Server {
                         resultList = fileParser.function13(message.getMessageBody().get(0));
                         break;
                     }
+                    case 14: {
+                        resultList = fileParser.function14();
+                        break;
+                    }
                     case 15: {
-                        resultList = fileParser.function15();
+                        resultList = fileParser.function15(message.getMessageBody().get(0));
                         break;
                     }
                     case 16: {
@@ -120,18 +119,6 @@ public class Server {
                 objectOutputStream.flush();
                 message = (Message) objectInputStream.readObject();
             }
-
-
-//        message = (Message) objectInputStream.readObject();
-//        System.out.println("Server got from client:");
-//        System.out.println(message.getCode());
-//        for (String row : message.getMessageBody()) {
-//            System.out.println(row);
-//        }
-//
-//        doSomething(message);
-//        objectOutputStream.writeObject(message);
-
             socket.close();
         }
         catch (IOException ioException){

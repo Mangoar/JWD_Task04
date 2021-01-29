@@ -20,12 +20,11 @@ public class SentancesParser {
         StringBuilder fileRow = new StringBuilder();
 
         for (String row : fileRows) {
-            fileRow.append(row.trim());/*.replaceAll("[!?]","."));*/
+            fileRow.append(row.trim());
             System.out.println(row);
         }
 
         String[] sentances = fileRow.toString().split("[\\.\\!\\?]");
-//        System.out.println("All sentences are :");
         for (String sentance : sentances) {
             textSentances.add(sentance);
         }

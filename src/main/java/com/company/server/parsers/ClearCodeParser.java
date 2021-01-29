@@ -20,8 +20,6 @@ public class ClearCodeParser {
     public List<String> getRows(){
         List<String> clearedFileRows = new ArrayList<>();
         for (String row : fileRows) {
-//            char firstSymbol = row.trim().charAt(0);
-//            if (Character.isDigit(firstSymbol) || Character.UnicodeBlock.of(firstSymbol).equals(Character.UnicodeBlock.CYRILLIC)) {
             String firstSymbol = row.trim().substring(0, 1);
             Pattern patkirletter = Pattern.compile("[а-яА-Я]{1}");
             Matcher matkirletter = patkirletter.matcher(firstSymbol);

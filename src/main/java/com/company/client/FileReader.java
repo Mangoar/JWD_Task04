@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Logger;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
@@ -13,6 +14,7 @@ public class FileReader {
 
     private static final String TXT_EXTENSION = ".txt";
     private String fileName;
+    final static Logger logger = Logger.getLogger(String.valueOf(Client.class));
 
     public FileReader(String fileName) {
         this.fileName = fileName;
@@ -26,7 +28,9 @@ public class FileReader {
         InputStream inputStream = classLoader.getResourceAsStream(fileName + TXT_EXTENSION);
 
         if (inputStream == null) {
-            throw new IllegalArgumentException("File " + fileName + TXT_EXTENSION +" not found!");
+            logger.info("File " + fileName + TXT_EXTENSION +" not found!");
+            throw new IllegalArgumentException();
+
         } else {
             try (InputStreamReader streamReader =
                          new InputStreamReader(inputStream, UTF_8);
