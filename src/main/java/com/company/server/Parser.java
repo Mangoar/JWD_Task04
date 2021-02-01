@@ -6,6 +6,7 @@ import com.company.server.parsers.SentancesParser;
 import com.company.server.parsers.WordsParser;
 
 import java.util.*;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -15,6 +16,8 @@ public class Parser {
     private List<String> textSentances;
     private List<String> textWords;
     private List<String> questionSentances;
+
+    final  static Logger logger = Logger.getLogger(String.valueOf(Server.class));
 
     public List<String> getFileRows() {
         return fileRows;
@@ -179,12 +182,16 @@ public class Parser {
         List<String> resultList = new ArrayList<>();
         resultList.add("Editted sentances:");
         for (String sentance : textSentances) {
-            List<String> sentanceWords = getAllSentanceWords(sentance);
-            System.out.println(sentanceWords);
-            String firstWord = sentanceWords.get(0);
-            String lastWord = sentanceWords.get(sentanceWords.size() - 1);
-            String newSentance = sentance.replaceFirst(lastWord, firstWord);
-            resultList.add(newSentance.replaceFirst(firstWord, lastWord));
+            try {
+                List<String> sentanceWords = getAllSentanceWords(sentance);
+                String firstWord = sentanceWords.get(0);
+                String lastWord = sentanceWords.get(sentanceWords.size() - 1);
+                String newSentance = sentance.replaceFirst(lastWord, firstWord);
+                resultList.add(newSentance.replaceFirst(firstWord, lastWord));
+            }
+            catch (IndexOutOfBoundsException indexOutOfBoundsException){
+                logger.info("IndexOutOfBoundsException occured!");
+            }
         }
         return resultList;
     }
@@ -255,33 +262,28 @@ public class Parser {
 
     public List<String> function8() {
         List<String> resultList = new ArrayList<>();
-        Map<Character, List<String>> wordsMap = new HashMap<>();
-        resultList.add("Words in alphabetic order:");
+        Set<String> setWithVowelsWords = new HashSet<>();
+        resultList.add("Sorted words:");
         for (String word : textWords) {
-            char firstChar = word.toLowerCase(Locale.ROOT).charAt(0);
-            char[] vowels = new char[]{'а', 'е', 'и', 'о', 'у', 'ы', 'ё', 'ю', 'э', 'я'};
-            for (char vowel : vowels) {
-                if (firstChar != vowel) {
-                    if (!wordsMap.containsKey(firstChar)) {
-                        List<String> wordList = new ArrayList<>();
-                        wordList.add(word);
-                        wordsMap.put(firstChar, wordList);
-                    } else {
-                        List<String> wordList = wordsMap.get(firstChar);
-                        wordList.add(word);
-                    }
+            word = word.toLowerCase(Locale.ROOT);
+            char[] ch = word.toCharArray();
+            if (ch.length > 1) {
+                if (ch[0] == 'у' || ch[0] == 'е' || ch[0] == 'ы' || ch[0] == 'а' || ch[0] == 'о' || ch[0] == 'э' || ch[0] == 'я' || ch[0] == 'и' || ch[0] == 'ю') {
+                    String newWord = word;
+                    newWord = newWord + ch[0];
+                    newWord = newWord.substring(1);
+                    setWithVowelsWords.add(newWord);
                 }
             }
         }
-        Map<Character, List<String>> wordsTreeMap = new TreeMap<>(wordsMap);
+        TreeSet<String> sortedWordsTreeSet = new TreeSet();
+        sortedWordsTreeSet.addAll(setWithVowelsWords);
 
-
-        for (Map.Entry<Character, List<String>> entry : wordsTreeMap.entrySet()) {
-            StringBuilder resultRowBuilder = new StringBuilder("Letter " + entry.getKey() + " -> ");
-            for (String mapRow : entry.getValue()) {
-                resultRowBuilder.append(mapRow + " ");
-            }
-            resultList.add(resultRowBuilder.toString());
+        for (String str : sortedWordsTreeSet) {
+            char[] ch = str.toCharArray();
+            str = ch[ch.length - 1] + str;
+            str = str.substring(0, str.length() - 1);
+            resultList.add(str);
         }
 
         return resultList;
@@ -385,9 +387,10 @@ public class Parser {
 
             matcher = Pattern.compile(regex).matcher(sentance);
             List<String> entries = new ArrayList<>();
+
             while (matcher.find()) {
-                entries.add(matcher.group(1));
-                int length = matcher.group(1).length();
+                entries.add(matcher.group(0));
+                int length = matcher.group(0).length();
                 if (length > maxLength) {
                     maxLength = length;
                 }
