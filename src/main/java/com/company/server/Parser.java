@@ -377,30 +377,16 @@ public class Parser {
     public List<String> function11(String symbol) {
         List<String> resultList = new ArrayList<>();
 
-        Matcher matcher;
         String regex = symbol + ".+" + symbol;
 
-        resultList.add("Sentances with deleted substring:");
+        resultList.add("Sentences with deleted substring:");
         for (String sentance : textSentances) {
-
-            int maxLength = 0;
-
-            matcher = Pattern.compile(regex).matcher(sentance);
-            List<String> entries = new ArrayList<>();
-
-            while (matcher.find()) {
-                entries.add(matcher.group(0));
-                int length = matcher.group(0).length();
-                if (length > maxLength) {
-                    maxLength = length;
-                }
+                String[] kickString = sentance.split(regex);
+                StringBuilder stringBuilder =new StringBuilder();
+                for (int i = 0; i < kickString.length; i++) {
+                    stringBuilder.append(kickString[i]);
             }
-            for (String entry : entries) {
-                if (entry.length() == maxLength) {
-                    resultList.add(sentance.replaceAll(entry, ""));
-                }
-            }
-
+            resultList.add(stringBuilder.toString());
         }
 
         return resultList;
@@ -474,37 +460,25 @@ public class Parser {
     public List<String> function14() {
         List<String> resultList = new ArrayList<>();
         StringBuilder fileRow = new StringBuilder();
-        StringBuilder result = new StringBuilder();
         for (String row : clearedFileRows) {
             fileRow.append(row);
         }
 
-//        for (int i = 0; i < fileRow.length(); i++) {
-//            if ((i + 1) < fileRow.length()) {
-//                if (fileRow.charAt(i) == fileRow.charAt(i + 1)) {
-//                    result.append(fileRow.charAt(i));
-//                } else if ((i - 1) >= 0 && fileRow.charAt(i) == fileRow.charAt(i - 1)) {
-//                    result.append(fileRow.charAt(i));
-//                }
-//            } else {
-//                if (fileRow.charAt(i) == fileRow.charAt(i - 1)) {
-//                    result.append(fileRow.charAt(i));
-//                }
-//            }
-//        }
-//        List<String> results = Arrays.asList(result.toString().split("[\\s]"));
-//        int largestString = results.get(0).length();
-//        int index = 0;
-//
-//        for(int i = 0; i < results.size(); i++)
-//        {
-//            if(results.get(i).length() > largestString)
-//            {
-//                largestString = results.get(i).length();
-//                index = i;
-//            }
-//        }
-//        resultList.add(results.get(index));
+        List<String> allPalindroms = new ArrayList<>(findEvenPalindrom(fileRow.toString()));
+        allPalindroms.addAll(findOddPalindrom(fileRow.toString()));
+        int largestString = allPalindroms.get(0).length();
+        int index = 0;
+
+        for(int i = 0; i < allPalindroms.size(); i++)
+        {
+            if(allPalindroms.get(i).length() > largestString)
+            {
+                largestString = allPalindroms.get(i).length();
+                index = i;
+            }
+        }
+
+        resultList.add(allPalindroms.get(index));
         return resultList;
     }
 
@@ -517,7 +491,7 @@ public class Parser {
                 String newWord = firstSymbol.concat(word.replace(firstSymbol, ""));
                 wordsMap.put(word, newWord);
             }
-            resultList.add("Words with and their editted variant:");
+            resultList.add("Words with and their edited variant:");
             for (Map.Entry<String, String> entry : wordsMap.entrySet()) {
                 resultList.add(entry.getKey() + " -> " + entry.getValue());
             }
@@ -532,7 +506,7 @@ public class Parser {
                 }
                 wordsMap.put(word, newWord);
             }
-            resultList.add("Words with and their editted variant:");
+            resultList.add("Words with and their edited variant:");
             for (Map.Entry<String, String> entry : wordsMap.entrySet()) {
                 resultList.add(entry.getKey() + " -> " + entry.getValue());
             }
@@ -566,4 +540,48 @@ public class Parser {
     }
 
 
+    public List<String> findEvenPalindrom(String stringWithCorrectText) {
+        char[] arrWords = stringWithCorrectText.toCharArray();
+        List<String> palindroms = new ArrayList<>();
+
+        for (int i = 0; i < arrWords.length - 2; i++) {
+            StringBuilder str = new StringBuilder();
+            if (arrWords[i] == arrWords[i + 1]) {
+                int j = 1;
+                str.append(arrWords[i]);
+                str.append(arrWords[i]);
+                while (arrWords[i - j] == arrWords[i + j + 1]) {
+                    str.append(arrWords[i - j]);
+                    str.insert(0, arrWords[i - j]);
+                    j++;
+                }
+            }
+            if (str.length() > 2) {
+                palindroms.add(str.toString());
+            }
+        }
+        return palindroms;
+    }
+
+    public List<String> findOddPalindrom(String stringWithCorrectText) {
+        char[] arrWords = stringWithCorrectText.toCharArray();
+        List<String> palindroms = new ArrayList<>();
+
+        for (int i = 1; i < arrWords.length - 2; i++) {
+            StringBuilder str = new StringBuilder();
+            if (arrWords[i - 1] == arrWords[i + 1]) {
+                int j = 1;
+                str.append(arrWords[i]);
+                while (arrWords[i - j] == arrWords[i + j]) {
+                    str.append(arrWords[i - j]);
+                    str.insert(0, arrWords[i - j]);
+                    j++;
+                }
+            }
+            if (str.length() > 2) {
+                palindroms.add(str.toString());
+            }
+        }
+        return palindroms;
+    }
 }
